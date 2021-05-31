@@ -1,4 +1,6 @@
 #include <iostream>
+#include <cstring>
+#include <fstream>
 using namespace std;
 
 struct node {//true = Black, false = Red
@@ -49,13 +51,13 @@ void rotateR(node * head, node * originalHead) {
     head -> parent = left;
 }
 
-void fix(node * head, node * originalHead) {
+node * fix(node * head, node * originalHead) {
     node * parent = NULL;
     node * grandparent = NULL;
     while(head != originalHead && head -> color != true && head -> parent -> color == false) {
         parent = head -> parent;
         grandparent = head -> parent -> parent;
-        if(parent != grandparent -> left) {
+        if(parent == grandparent -> left) {
             node * uncle = grandparent -> right;
             if(uncle != NULL && uncle -> color == false) {
                 grandparent -> color = false;
@@ -64,7 +66,7 @@ void fix(node * head, node * originalHead) {
                 head = grandparent;
             }
             else {
-                if(head -> parent -> right) {
+                if(head == parent -> right) {
                     rotateL(parent, originalHead);
                     head = parent;
                     parent = head -> parent;
@@ -94,7 +96,8 @@ void fix(node * head, node * originalHead) {
             }
         }
     }
-    originalHead -> color = true; 
+    originalHead -> color = true;
+    return head;
 }
 
 node * add(int addValue, node * head, node * originalHead) {
@@ -113,12 +116,12 @@ node * add(int addValue, node * head, node * originalHead) {
     else if(addValue <= head -> value) {
         temp -> parent = head;
         head -> left = temp;
-        fix(head -> left, originalHead);
+        head = fix(head -> left, originalHead);
     }
     else if(addValue > head -> value) {
         temp -> parent = head;
         head -> right = temp;
-        fix(head -> right, originalHead);
+        head = fix(head -> right, originalHead);
     }
     return head;
 }
@@ -144,15 +147,40 @@ void print(node * head, int space) {//print tree visually
 
 int main() {
     int space = 0;
+    char * input = new char[999];
     node * head = NULL;
-    head = add(5, head, head);
-    head = add(6, head, head);
-    head = add(7, head, head);
-    head = add(8, head, head);
-    head = add(4, head, head);
-    head = add(3, head, head);
-    head = add(9, head, head);
-    head = add(6, head, head);
-    print(head, space);
+    bool running = true;
+    while(running) {
+        cout << "INITIALIZE, PRINT, QUIT" << endl;
+        cin >> input;
+        if (strcmp("INITIALIZE", input) == 0) {
+            cout << "CONSOLE, FILE" << endl;
+            cin >> input;
+            if(strcmp("CONSOLE", input) == 0) {
+                cout << "Please input #" << endl;
+                int inputNum;
+                cin >> inputNum;
+                head = add(inputNum, head, head);
+                cout << "ADDED" << endl;
+            }
+            if(strcmp("FILE", input) == 0) {
+                int arrayIndex = 0;
+                cout << "Please input name of File" << endl;
+                cin >> input;
+                int num = 0;
+                ifstream numFile (input);
+                while(numFile >> num) {
+                    head = add(num, head, head);
+                }
+            }
+        }
+        else if(strcmp("PRINT", input) == 0) {
+            print(head, space);
+        }
+        else if(strcmp("QUIT", input) == 0) {
+            running = false;
+        }
+    }   
+    
     return 0;
 }
