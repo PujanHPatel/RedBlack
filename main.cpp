@@ -51,6 +51,27 @@ void rotateR(node * head, node * originalHead) {
     head -> parent = left;
 }
 
+void print(node * head, int space) {//print tree visually
+    
+    if(head == NULL) {
+        return;
+    }
+    space += 10;
+    print(head -> right, space);
+    cout << " " << endl;
+    for (int i = 10; i < space; i++) {
+        cout << " ";
+    }
+    if(head -> color == true) {
+        cout << head -> value << "," << "B" << endl;
+    }
+    else if(head -> color == false) {
+        cout << head -> value << "," << "R" << endl;
+    }
+    print(head -> left, space);
+
+}
+
 node * fix(node * head, node * originalHead) {
     node * parent = NULL;
     node * grandparent = NULL;
@@ -96,53 +117,41 @@ node * fix(node * head, node * originalHead) {
             }
         }
     }
+    while(originalHead -> parent) {
+        originalHead = originalHead -> parent;
+    }
     originalHead -> color = true;
     return head;
 }
 
 node * add(int addValue, node * head, node * originalHead) {
-    node * temp = new node;
-    temp -> value = addValue;
     if(head == NULL) {
+        node * temp = new node;
+        temp -> value = addValue;
         head = temp;
         head -> color = true;
     }
-    else if(addValue <= head -> value && head -> left != NULL) {
+    else if(addValue < head -> value && head -> left != NULL) {
         add(addValue, head -> left, originalHead);
     }
     else if(addValue > head -> value && head -> right != NULL) {
         add(addValue, head -> right, originalHead);
     }
-    else if(addValue <= head -> value) {
+    else if(addValue < head -> value && head -> left == NULL) {
+        node * temp = new node;
+        temp -> value = addValue;
         temp -> parent = head;
         head -> left = temp;
         head = fix(head -> left, originalHead);
     }
-    else if(addValue > head -> value) {
+    else if(addValue > head -> value && head -> right == NULL) {
+        node * temp = new node;
+        temp -> value = addValue;
         temp -> parent = head;
         head -> right = temp;
         head = fix(head -> right, originalHead);
     }
     return head;
-}
-void print(node * head, int space) {//print tree visually
-    if(head == NULL) {
-        return;
-    }
-    space += 10;
-    print(head -> right, space);
-    cout << " " << endl;
-    for (int i = 10; i < space; i++) {
-        cout << " ";
-    }
-    if(head -> color == true) {
-        cout << head -> value << "," << "B" << endl;
-    }
-    else if(head -> color == false) {
-        cout << head -> value << "," << "R" << endl;
-    }
-    print(head -> left, space);
-
 }
 
 int main() {
@@ -151,16 +160,19 @@ int main() {
     node * head = NULL;
     bool running = true;
     while(running) {
-        cout << "INITIALIZE, PRINT, QUIT" << endl;
+        cout << "initialize, print, quit" << endl;
         cin >> input;
-        if (strcmp("INITIALIZE", input) == 0) {
-            cout << "CONSOLE, FILE" << endl;
+        if (strcmp("initialize", input) == 0) {
+            cout << "console, file" << endl;
             cin >> input;
-            if(strcmp("CONSOLE", input) == 0) {
-                cout << "Please input #" << endl;
-                int inputNum;
-                cin >> inputNum;
-                head = add(inputNum, head, head);
+            if(strcmp("console", input) == 0) {
+                cout << "please input #" << endl;
+                int inputnum;
+                cin >> inputnum;
+                head = add(inputnum, head, head);
+                if(head -> parent != NULL) {
+                    head = head -> parent;
+                }
                 cout << "ADDED" << endl;
             }
             if(strcmp("FILE", input) == 0) {
