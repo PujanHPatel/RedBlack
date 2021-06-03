@@ -160,12 +160,12 @@ int main() {
     node * head = NULL;
     bool running = true;
     while(running) {
-        cout << "initialize, print, quit" << endl;
+        cout << "INITIALIZE, PRINT, QUIT" << endl;
         cin >> input;
-        if (strcmp("initialize", input) == 0) {
-            cout << "console, file" << endl;
+        if (strcmp("INITIALIZE", input) == 0) {
+            cout << "CONSOLE, FILE" << endl;
             cin >> input;
-            if(strcmp("console", input) == 0) {
+            if(strcmp("CONSOLE", input) == 0) {
                 cout << "please input #" << endl;
                 int inputnum;
                 cin >> inputnum;
@@ -183,6 +183,9 @@ int main() {
                 ifstream numFile (input);
                 while(numFile >> num) {
                     head = add(num, head, head);
+                    if(head -> parent != NULL) {
+                        head = head -> parent;
+                    }
                 }
             }
         }
