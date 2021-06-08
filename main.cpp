@@ -3,15 +3,89 @@
 #include <fstream>
 using namespace std;
 
-struct node {//true = Black, false = Red
-    int value = 0; 
-    bool color = false;
+struct node {
+    int value = 0;
+    bool color = true;
     node * parent = NULL;
     node * left = NULL;
     node * right = NULL;
 };
+node * traverse(node * head, int key);
+void print(node * head, int space);
+void insert(node *& root, int key);
+void rotateL(node *& root, node *& current);
+void rotateR(node *& root, node *& current);
+void fixInsertion(node *& root, node * current);
+bool search(node * head, int key);
+node * findNode(node * head, int key);
+void deleteNode(node *& root, int key);
+node * sibling(node * x);
+void replace(node *& p, node * c);
+void caseZero(node *& root, node * x);
+void caseOne(node *& root, node * x);
+void caseTwo(node *& root, node * x);
+void caseThree(node *& root, node * x);
+void caseFour(node *& root, node * x);
+void caseFive(node *& root, node * x);
 
-void print(node * head, int space) {//print tree visually
+int main() {
+    node * root = NULL;
+    int space = 5;
+    char * input = new char[999];
+    bool running = true;
+    while(running) {
+        cout << "INITIALIZE, PRINT, SEARCH, DELETE, QUIT" << endl;
+        cin >> input;
+        if (strcmp("INITIALIZE", input) == 0) {
+            cout << "CONSOLE, FILE" << endl;
+            cin >> input;
+            if(strcmp("CONSOLE", input) == 0) {
+                cout << "please input #" << endl;
+                int inputNum;
+                cin >> inputNum;
+                insert(root, inputNum);
+                cout << "ADDED" << endl;
+            }
+            if(strcmp("FILE", input) == 0) {
+                int arrayIndex = 0;
+                cout << "Please input name of File" << endl;
+                cin >> input;
+                int num = 0;
+                ifstream numFile (input);
+                while(numFile >> num) {
+                    insert(root, num);
+                }
+            }
+        }
+        else if(strcmp("PRINT", input) == 0) {
+            print(root, space);
+        }
+        else if(strcmp("DELETE", input) == 0) {
+            int valueFind;
+            cout << "Please input # to delete" << endl;
+            cin >> valueFind;
+            deleteNode(root, valueFind);
+        }
+        else if(strcmp("SEARCH", input) == 0) {
+            int valueFind;
+            cout << "Please input # to delete" << endl;
+            cin >> valueFind;
+            if(search(root, valueFind) == true) {
+                cout << "Node Value Exists In Tree" << endl;
+            }
+            else {
+                cout << "Node Value Exists In Tree" << endl;
+            };
+        }
+        else if(strcmp("QUIT", input) == 0) {
+            running = false;
+        }
+    }   
+    
+    return 0;
+}
+
+void print(node * head, int space) {
     
     if(head == NULL) {
         return;
@@ -31,362 +105,313 @@ void print(node * head, int space) {//print tree visually
     print(head -> left, space);
 
 }
-node * getSibling(node * Node) {
-    node * sibling = Node -> parent;
-    if(sibling == NULL) {
-        return NULL;
+
+node * traverse(node * head, int key) {
+    if(key > head -> value && head -> right != NULL) {
+        return traverse(head -> right, key);
     }
-    else if(Node == sibling -> left) {
-        sibling = sibling -> right;
-        return sibling;
+    else if(key < head -> value && head -> left != NULL) {
+        return traverse(head -> left, key);
     }
-    else if(Node == sibling -> right) {
-        sibling = sibling -> left;
-        return sibling;
-    }
-    return NULL;
-}   
-void rotateL(node * head, node * originalHead) {
-    node * right = head -> right;
-    head -> right = right -> left;
-    if(head -> right != NULL) {
-        head -> right -> parent = head;
-    }
-    right -> parent = head -> parent;
-    if(head -> parent == NULL) {
-        originalHead = right;
-    }
-    else if(head == head -> parent -> left) {
-        head -> parent -> left = right;
-    }
-    else {
-        head -> parent -> right = right;
-    }
-    right -> left = head;
-    head -> parent = right;
+    return head;
 }
-void rotateR(node * head, node * originalHead) {
-    node * left = head -> left;
-    head -> left = left -> right;
-    if(head -> left != NULL) {
-        head -> left -> parent = head;
-    }
-    left -> parent = head -> parent;
-    if(head -> parent == NULL) {
-        originalHead = left;
-    }
-    else if(head == head -> parent -> left) {
-        head -> parent -> left = left;
-    }
-    else {
-        head -> parent -> right = left;
-    }
-    left -> right = head;
-    head -> parent = left;
-}
-void caseFive(node *& head, node * Node) {
-    node * sibling = getSibling(Node);
-    sibling -> color = Node -> parent -> color;
-    Node -> parent -> color = true;
-    if(Node == Node -> parent -> left) {
-        sibling -> right -> color = true;
-        rotateL(Node -> parent, head);
-    }
-    else {
-        sibling -> right -> color = true;
-        rotateL(Node -> parent, head);
-    }
-}
-void caseFour(node *& head, node * Node) {
-    node * sibling = getSibling(Node);
-    if(sibling -> color == true) {
-        if((Node == Node -> parent -> left) && (sibling -> right == NULL || sibling -> right -> color == true)
-                && (sibling -> left != NULL && sibling -> left -> color == false)) {
-            sibling -> color = false;
-            sibling -> left -> color = true;
-            rotateR(sibling, head);
-        }
-        else if((Node == Node -> parent -> right) && (sibling -> left == NULL || sibling -> left -> color
-                    == true) && (sibling -> right != NULL && sibling -> right -> color == false)) {
-            sibling -> color = false;
-            sibling -> right -> color = true;
-            rotateL(sibling, head);
-        }
-    }
-    caseFive(head, sibling);
-}
-void caseThree(node *& head, node * Node) {
-    node * sibling = getSibling(Node);
-    if((Node -> parent -> color == false) && (sibling -> color == true) && (sibling -> left == NULL ||
-                sibling -> left -> color == true) && (sibling -> right == NULL || sibling -> right -> 
-                    color == true)) {
-        sibling -> color = false;
-        Node -> parent -> color = true;
-    }
-    else {
-        caseFour(head, Node);
-    }
-}
-void caseChecker(node *& head, node * Node); 
-void caseTwo(node *& head, node * Node) {
-    node * sibling = getSibling(Node);
-    if((Node -> parent -> color == false) && (sibling -> color == true) && (sibling -> left == NULL ||
-                sibling -> left -> color == true) && (sibling -> right == NULL || sibling -> right -> 
-                    color == true)) {
-        sibling -> color = false;
-        caseChecker(head, Node -> parent);
-    }
-    else {
-        caseThree(head, Node);
-    }
-}
-void caseOne(node *& head, node * Node) {
-    node * sibling = getSibling(Node);
-    if(sibling -> color == false) {
-        Node -> parent -> color = false;
-        sibling -> color = true;
-        if(Node == Node -> parent -> left) {
-            rotateL(Node -> parent, head);
+
+void insert(node *& root, int key) {
+    node * temp = new node;
+    temp -> value = key;
+    temp -> color = false;
+    if(root != NULL) {
+        node * current = traverse(root, key); 
+        temp -> parent = current;
+        if(current -> value > key) {
+            current -> left = temp;
+            fixInsertion(root, current -> left);
         }
         else {
-            rotateR(Node -> parent, head);
+            current -> right = temp;
+            fixInsertion(root, current -> right);
         }
     }
-    caseTwo(head, Node);
-}
-void caseChecker(node *& head, node * Node) {
-    if(Node -> parent != NULL) {
-        caseOne(head, Node);
+    else {
+        root = temp;
+        root -> color = true;
     }
 }
-bool search(node * head, int valueFind) {
-    if(head != NULL) {
-        if(head -> value == valueFind) {
-            return true;
-        }Node
+
+void rotateL(node *& root, node *& current) {
+     node * pRight = current -> right;
+    current -> right = pRight -> left;
+    if(current -> right != NULL) {
+        current -> right -> parent = current;
+    }
+    pRight -> parent = current -> parent;
+    if(current -> parent == NULL) {
+        root = pRight;
+    }
+    else if(current == current -> parent -> left) {
+        current -> parent -> left = pRight;
+    }
+    else {
+        current -> parent -> right = pRight;
+    }
+    pRight -> left = current;
+    current -> parent = pRight;
+}
+
+void rotateR(node *& root, node *& current) {
+    node * pLeft = current -> left;
+    current -> left = pLeft -> right;
+    if(current -> left != NULL) {
+        current -> left -> parent = current;
+    }
+    pLeft -> parent = current -> parent;
+    if(current -> parent == NULL) {
+        root = pLeft;
+    }
+    else if(current == current -> parent -> left) {
+        current -> parent -> left = pLeft;
+    }
+    else {
+        current -> parent -> right = pLeft;
+    }
+    pLeft -> right = current;
+    current -> parent = pLeft;
+}
+
+void fixInsertion(node *& root, node * current) {
+    node * p = NULL;
+    node * g = NULL;
+    node * u = NULL;
+    while(current != root && current -> color != true && current -> parent -> color == false) {
+        p = current -> parent;
+        g = current -> parent -> parent;
+        if(p == g -> left) {
+            u = g -> right;
+            if(u != NULL && u -> color == false) {
+                g -> color = false;
+                p -> color = true;
+                u -> color = true;
+                current = g;
+            }
+            else {
+                if(current == p -> right) {
+                    rotateL(root, p);
+                    current = p;
+                    p = current -> parent;
+                }
+                rotateR(root, g);
+                swap(p -> color, g -> color);
+                current = p;
+            }
+        }
         else {
-            if(search(head -> right, valueFind)) {
-                return true;
+            u = g -> left;
+            if((u != NULL) && (u -> color == false)) {
+                g -> color = false;
+                p -> color = true;
+                u -> color = true;
+                current = g;
+            }
+            else {
+                if(current == p -> left) {
+                    rotateR(root, p);
+                    current = p;
+                    p = current -> parent;
+                }
+                rotateL(root, g);
+                swap(p -> color, g -> color);
+                current = p;
             }
         }
     }
-    return false;
+    root -> color = true;
 }
 
-void replaceTwo(node *& Node, node * child) {
-    if(Node -> parent != NULL) {
-        child -> parent = Node -> parent;
-        if(Node == Node -> parent -> left) {
-            Node -> parent -> left = child;
-        }
-        else {
-            Node -> parent -> right = child;
-        }
+bool search(node * head, int key) {
+    if(head == NULL) {
+        return false;
+    }
+    else if(key > head -> value && head -> right != NULL) {
+        return search(head -> right, key);
+    }
+    else if(key < head -> value && head -> left != NULL) {
+        return search(head -> left, key);
+    }
+    else if(key == head -> value) {
+        return true;
     }
     else {
-        Node -> value = child -> value;
-        Node -> left = child -> left;
-        Node -> right = child -> right;
+        return false;
     }
+
+
 }
-node * findNode(node * head, int valueFind) {
-    if(valueFind > head -> value) {
-        return findNode(head -> right, valueFind);
-    }   
-    else if(valueFind < head -> value) {
-        return findNode(head -> left, valueFind);
+
+node * findNode(node * head, int key) {
+    if(key > head -> value && head -> right != NULL) {
+        return findNode(head -> right, key);
     }
-    else if(valueFind == head -> value) {
+    else if(key < head -> value && head -> left != NULL) {
+        return findNode(head -> left, key);
+    }
+    else if(key == head -> value) {
         return head;
     }
-    return NULL;
 }
-void deleteNode(node * head, int valueFind) {
-    if(search(head, valueFind) == false) {
-        return;
+
+void deleteNode(node *& root, int key) {
+    if (search(root, key) == false) {
+        cout << "Node Value Does Not Exist" << endl;
+        return; 
     }
-    node * nodeToDelete = findNode(head, valueFind);
-    if(nodeToDelete -> left != NULL && nodeToDelete -> right != NULL) {
-        node * successor = nodeToDelete -> right;
-        while(successor -> left != NULL) {
-            successor = successor -> left;
+    node* deleteN = findNode(root, key);
+
+    if (deleteN == NULL) {
+        return; 
+    }
+
+    if (deleteN -> left != NULL && deleteN -> right != NULL) {
+        node* successor = deleteN -> right;
+        while (successor -> left != NULL) {
+            successor = successor -> left; 
         }
-        nodeToDelete -> value = successor -> value;
-        nodeToDelete = successor;
+        deleteN -> value = successor -> value;
+        deleteN = successor; 
     }
-    if(nodeToDelete -> color == false) {
-        if(nodeToDelete -> parent != NULL) {
-            if(nodeToDelete -> parent -> left == nodeToDelete) {
-                nodeToDelete -> parent -> left = NULL;
+    if (deleteN -> color == false) {
+        if(deleteN -> parent != NULL) {
+            if (deleteN -> parent -> left == deleteN) {
+	            deleteN -> parent -> left = NULL;
             }
             else {
-                nodeToDelete -> parent -> right = NULL;
+                deleteN -> parent -> right = NULL; 
             }
         }
         else {
 
         }
     }
-    else if(nodeToDelete -> left != NULL) {
-        nodeToDelete -> left -> color = true;
-        replaceTwo(nodeToDelete, nodeToDelete -> left);
+    else if (deleteN -> left != NULL) {
+        deleteN -> left -> color = true;
+        replace(deleteN, deleteN -> left);  
     }
-    else if(nodeToDelete -> right != NULL) {
-        nodeToDelete -> right -> color = true;
-        replaceTwo(nodeToDelete, nodeToDelete -> right);
-    }   
+    else if (deleteN -> right != NULL) {
+        deleteN -> right -> color = true;
+        replace(deleteN, deleteN -> right); 
+    }
     else {
-        if(head == nodeToDelete) {
-            head = NULL;
+        if (root == deleteN) {
+	        root = NULL; 
         }
         else {
-            caseChecker(head, nodeToDelete);
-            if(nodeToDelete -> parent -> left == nodeToDelete) {
-                nodeToDelete -> parent -> left = NULL;
-            }
-            else {
-                nodeToDelete -> parent -> right = NULL;
-            }
+	        caseZero(root, deleteN); 
+	        if (deleteN -> parent -> left == deleteN) {
+	            deleteN -> parent -> left = NULL; 
+	        }
+	        else {
+            deleteN -> parent -> right = NULL; 
+	        }
         }
     }
-    return;
+    return; 
 }
 
-
-node * fix(node * head, node * originalHead) {
-    node * parent = NULL;
-    node * grandparent = NULL;
-    while(head != originalHead && head -> color != true && head -> parent -> color == false) {
-        parent = head -> parent;
-        grandparent = head -> parent -> parent;
-        if(parent == grandparent -> left) {
-            node * uncle = grandparent -> right;
-            if(uncle != NULL && uncle -> color == false) {
-                grandparent -> color = false;
-                parent -> color = true;
-                uncle -> color = true;
-                head = grandparent;
-            }
-            else {
-                if(head == parent -> right) {
-                    rotateL(parent, originalHead);
-                    head = parent;
-                    parent = head -> parent;
-                }
-                rotateR(grandparent, originalHead);
-                swap(parent -> color, grandparent -> color);
-                head = parent;
-            }
-        }
-        else { 
-            node * uncle = grandparent -> left;
-            if(uncle != NULL && uncle -> color == false) {
-                grandparent -> color = false;
-                parent -> color = true;
-                uncle -> color = true;
-                head = grandparent;
-            }
-            else {
-                if(head == parent -> left) {
-                    rotateR(parent, originalHead);
-                    head = parent;
-                    parent = head -> parent;
-                }
-                rotateL(grandparent, originalHead);
-                swap(parent -> color, grandparent -> color);
-                head = parent;
-            }
-        }
+node * sibling(node * x) {
+    if(x == x -> parent -> right) {
+        return x -> parent -> left;
     }
-    while(originalHead -> parent) {
-        originalHead = originalHead -> parent;
+    else {
+        return x -> parent -> right;
     }
-    originalHead -> color = true;
-    return head;
 }
 
-node * add(int addValue, node * head, node * originalHead) {
-    if(head == NULL) {
-        node * temp = new node;
-        temp -> value = addValue;
-        head = temp;
-        head -> color = true;
+void caseZero(node *& root, node * x) {
+    if(x -> parent != NULL) {
+        caseOne(root, x); 
     }
-    else if(addValue < head -> value && head -> left != NULL) {
-        add(addValue, head -> left, originalHead);
-    }
-    else if(addValue > head -> value && head -> right != NULL) {
-        add(addValue, head -> right, originalHead);
-    }
-    else if(addValue < head -> value && head -> left == NULL) {
-        node * temp = new node;
-        temp -> value = addValue;
-        temp -> parent = head;
-        head -> left = temp;
-        head = fix(head -> left, originalHead);
-    }
-    else if(addValue > head -> value && head -> right == NULL) {
-        node * temp = new node;
-        temp -> value = addValue;
-        temp -> parent = head;
-        head -> right = temp;
-        head = fix(head -> right, originalHead);
-    }
-    return head;
 }
 
-int main() {
-    int space = 0;
-    char * input = new char[999];
-    node * head = NULL;
-    bool running = true;
-
-    while(running) {
-        cout << "INITIALIZE, PRINT, QUIT" << endl;
-        cin >> input;
-        if (strcmp("INITIALIZE", input) == 0) {
-            cout << "CONSOLE, FILE" << endl;
-            cin >> input;
-            if(strcmp("CONSOLE", input) == 0) {
-                cout << "please input #" << endl;
-                int inputnum;
-                cin >> inputnum;
-                head = add(inputnum, head, head);
-                if(head -> parent != NULL) {
-                    head = head -> parent;
-                }
-                cout << "ADDED" << endl;
-            }
-            if(strcmp("FILE", input) == 0) {
-                int arrayIndex = 0;
-                cout << "Please input name of File" << endl;
-                cin >> input;
-                int num = 0;
-                ifstream numFile (input);
-                while(numFile >> num) {
-                    head = add(num, head, head);
-                    if(head -> parent != NULL) {
-                        head = head -> parent;
-                    }
-                }
-            }
+void caseOne(node *& root, node * x) {
+    node * sib = sibling(x);
+    if (sib -> color == false) {
+        x -> parent -> color = false;
+        sib -> color = true;
+        if (x == x -> parent -> left) {
+            rotateL(root, x -> parent); 
         }
-        else if(strcmp("PRINT", input) == 0) {
-            print(head, space);
+        else {
+            rotateR(root, x -> parent); 
         }
-        else if(strcmp("DELETE", input) == 0) {
-            int valueFind;
-            cout << "Please input # to delete" << endl;
-            cin >> valueFind;
-            deleteNode(head, valueFind);
-        }
-        else if(strcmp("SEARCH", input) == 0) {
-        }
-        else if(strcmp("QUIT", input) == 0) {
-            running = false;
-        }
-    }   
-    
-    return 0;
-
+    }
+    caseTwo(root, x); 
 }
+
+void caseTwo(node *& root, node * x) {
+    node * sib = sibling(x);
+    if ((x -> parent -> color == true) && (sib -> color == true) && (sib -> left == NULL || sib -> left -> color == true) && (sib -> right == NULL || sib -> right -> color == true)) {
+        sib -> color = false;
+        caseZero(root, x -> parent); 
+    }
+    else {
+        caseThree(root, x); 
+    }
+}
+
+void caseThree(node *& root, node * x) {
+    node* sib = sibling(x);
+    if ((x -> parent -> color == false) && (sib -> color == true) && (sib -> left == NULL || sib -> left -> color == true) && (sib -> right == NULL || sib -> right -> color == true)) {
+        sib -> color = false;
+        x -> parent -> color = true; 
+    }
+    else {
+        caseFour(root, x); 
+    }
+}
+
+void caseFour(node *& root, node * x) {
+    node* sib = sibling(x);
+    if (sib -> color == true) {
+        if ((x == x -> parent -> left) && (sib -> right == NULL || sib -> right -> color == true) && (sib -> left != NULL && sib -> left -> color == false)) {
+            sib -> color = false;
+            sib -> left -> color = true;
+            rotateR(root, sib); 
+        }
+        else if ((x == x -> parent -> right) && (sib -> left == NULL || sib -> left -> color == true) && (sib -> right != NULL && sib -> right -> color == true)) {
+            sib -> color = false;
+            sib -> right -> color = true;
+            rotateL(root, sib); 
+        }
+    }
+    caseFive(root, sib);
+}
+
+void caseFive(node *& root, node * x) {
+    node* sib = sibling(x);   
+    sib -> color = x -> parent -> color;
+    x -> parent -> color = true;
+    if (x == x -> parent -> left) {
+        sib -> right -> color = true;
+        rotateL(root, x -> parent); 
+    }
+    else {
+        sib -> right -> color = true;
+        rotateL(root, x -> parent); 
+    }
+}
+
+void replace(node *& p, node * c) {
+    if(p -> parent != NULL) {
+        c -> parent = p -> parent;
+        if(p == p -> parent -> left) {
+            p -> parent -> left = c;
+        }
+        else {
+            p -> parent -> right = c;
+        }
+    }
+    else {
+        p -> value = c -> value;
+        p -> left = c -> left;
+        p -> right = c -> right;
+    }
+} 
